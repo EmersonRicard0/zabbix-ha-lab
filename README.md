@@ -1,3 +1,4 @@
+<img width="1582" height="986" alt="WhatsApp Image 2026-07-08 at 10 05 29" src="https://github.com/user-attachments/assets/57684f04-3cca-4287-8920-1f6c4514cc9c" />
 # Lab Zabbix Server HA com Docker
 
 Este lab sobe um ambiente leve para demonstrar HA nativo do Zabbix Server:
