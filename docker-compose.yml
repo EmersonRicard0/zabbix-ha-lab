@@ -1,0 +1,218 @@
+﻿name: zabbix-ha-lab
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: zbx-ha-postgres
+    environment:
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pwd
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.253.12
+        aliases:
+          - postgres
+          - db-zabbix
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zabbix -d zabbix"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    mem_limit: 512m
+
+  zabbix-server-01:
+    image: zabbix/zabbix-server-pgsql:alpine-7.2-latest
+    container_name: zbx-server-01
+    hostname: zbx-node-01
+    environment:
+      DB_SERVER_HOST: 192.168.253.12
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pwd
+      ZBX_HANODENAME: zbx-node-01
+      ZBX_NODEADDRESS: 192.168.253.9:10051
+      ZBX_STARTPOLLERS: 5
+      ZBX_STARTPINGERS: 2
+      ZBX_STARTSNMPPOLLERS: 1
+      ZBX_STARTDBSYNCERS: 2
+      ZBX_STARTPREPROCESSORS: 2
+      ZBX_CACHESIZE: 64M
+      ZBX_HISTORYCACHESIZE: 16M
+      ZBX_HISTORYINDEXCACHESIZE: 4M
+      ZBX_TRENDCACHESIZE: 4M
+      ZBX_TRENDFUNCTIONCACHESIZE: 4M
+      ZBX_VALUECACHESIZE: 32M
+      ZBX_TIMEOUT: 5
+    ports:
+      - "11051:10051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.253.9
+        aliases:
+          - zbx-node-01
+          - zabbix-server-01
+    restart: unless-stopped
+    mem_limit: 384m
+
+  zabbix-server-02:
+    image: zabbix/zabbix-server-pgsql:alpine-7.2-latest
+    container_name: zbx-server-02
+    hostname: zbx-node-02
+    environment:
+      DB_SERVER_HOST: 192.168.253.12
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pwd
+      ZBX_HANODENAME: zbx-node-02
+      ZBX_NODEADDRESS: 192.168.254.9:10051
+      ZBX_STARTPOLLERS: 5
+      ZBX_STARTPINGERS: 2
+      ZBX_STARTSNMPPOLLERS: 1
+      ZBX_STARTDBSYNCERS: 2
+      ZBX_STARTPREPROCESSORS: 2
+      ZBX_CACHESIZE: 64M
+      ZBX_HISTORYCACHESIZE: 16M
+      ZBX_HISTORYINDEXCACHESIZE: 4M
+      ZBX_TRENDCACHESIZE: 4M
+      ZBX_TRENDFUNCTIONCACHESIZE: 4M
+      ZBX_VALUECACHESIZE: 32M
+      ZBX_TIMEOUT: 5
+    ports:
+      - "11052:10051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zabbix-server-01:
+        condition: service_started
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.254.9
+        aliases:
+          - zbx-node-02
+          - zabbix-server-02
+    restart: unless-stopped
+    mem_limit: 384m
+
+  zabbix-web-01:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.2-latest
+    container_name: zbx-web-01
+    hostname: zbx-web-01
+    environment:
+      DB_SERVER_HOST: 192.168.253.12
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pwd
+      PHP_TZ: America/Fortaleza
+      ZBX_SERVER_NAME: monitoramento.networksecure.com.br
+      ZBX_MEMORYLIMIT: 128M
+      ZBX_POSTMAXSIZE: 16M
+      ZBX_UPLOADMAXFILESIZE: 2M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zabbix-server-01:
+        condition: service_started
+      zabbix-server-02:
+        condition: service_started
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.253.20
+        aliases:
+          - zabbix-web-01
+    expose:
+      - "8080"
+    restart: unless-stopped
+    mem_limit: 256m
+
+  zabbix-web-02:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.2-latest
+    container_name: zbx-web-02
+    hostname: zbx-web-02
+    environment:
+      DB_SERVER_HOST: 192.168.253.12
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pwd
+      PHP_TZ: America/Fortaleza
+      ZBX_SERVER_NAME: monitoramento.networksecure.com.br
+      ZBX_MEMORYLIMIT: 128M
+      ZBX_POSTMAXSIZE: 16M
+      ZBX_UPLOADMAXFILESIZE: 2M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zabbix-server-01:
+        condition: service_started
+      zabbix-server-02:
+        condition: service_started
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.254.20
+        aliases:
+          - zabbix-web-02
+    expose:
+      - "8080"
+    restart: unless-stopped
+    mem_limit: 256m
+
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: zbx-reverse-proxy
+    hostname: reverse-proxy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - zabbix-web-01
+      - zabbix-web-02
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.253.5
+        aliases:
+          - monitoramento.networksecure.com.br
+          - reverse-proxy
+    restart: unless-stopped
+    mem_limit: 64m
+
+  linux-host:
+    image: zabbix/zabbix-agent2:alpine-7.2-latest
+    container_name: linux-host-lab
+    hostname: linux-host-ha-demo
+    environment:
+      ZBX_HOSTNAME: linux-host-ha-demo
+      ZBX_SERVER_HOST: 192.168.253.9,192.168.254.9
+      ZBX_SERVER_ACTIVE: 192.168.253.9;192.168.254.9
+      ZBX_ACTIVE_ALLOW: "true"
+      ZBX_PASSIVE_ALLOW: "true"
+    depends_on:
+      - zabbix-server-01
+      - zabbix-server-02
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.254.100
+        aliases:
+          - linux-host
+          - linux-host-lab
+          - linux-host-ha-demo
+    restart: unless-stopped
+    mem_limit: 128m
+
+networks:
+  zbx_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.252.0/22
+          gateway: 192.168.252.1
+
+volumes:
+  pgdata:

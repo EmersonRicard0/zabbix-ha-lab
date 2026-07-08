@@ -1,0 +1,40 @@
+services:
+  status-page:
+    build: ./status-page
+    container_name: zbx-ha-topology
+    hostname: status-page
+    environment:
+      TZ: America/Fortaleza
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pwd
+      ZBX_API_URL: http://reverse-proxy/api_jsonrpc.php
+      ZBX_API_USER: Admin
+      ZBX_API_PASSWORD: zabbix
+      DEMO_HOST_NAME: linux-host-ha-demo
+      DEMO_ITEM_KEY: agent.ping
+      PROXY_URL: http://reverse-proxy/
+      WEB01_URL: http://zbx-web-01:8080/
+      WEB02_URL: http://zbx-web-02:8080/
+    ports:
+      - "8090:8090"
+    networks:
+      zbx_net:
+        ipv4_address: 192.168.253.30
+        aliases:
+          - status-page
+    depends_on:
+      postgres:
+        condition: service_healthy
+      reverse-proxy:
+        condition: service_started
+      zabbix-server-01:
+        condition: service_started
+      zabbix-server-02:
+        condition: service_started
+      zabbix-web-01:
+        condition: service_started
+      zabbix-web-02:
+        condition: service_started
+    restart: unless-stopped

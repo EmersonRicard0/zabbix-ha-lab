@@ -1,0 +1,27 @@
+﻿# Compactados
+*.rar
+*.zip
+*.7z
+
+# Ambiente / segredos
+.env
+.env.*
+!.env.example
+
+# Logs e temporários
+*.log
+logs/
+tmp/
+*.tmp
+
+# Docker volumes / dados locais
+data/
+postgres-data/
+mysql-data/
+zabbix-data/
+
+# Windows / IDE
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

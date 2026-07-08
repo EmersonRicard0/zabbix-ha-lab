@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zabbix HA — Topologia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="main-grid">
+      <section class="topology-card">
+        <div class="card-head">
+          <div class="section-title">Topologia</div>
+          <div class="legend">
+            <span class="legend-item"><i class="dot dot-active"></i>Ativo / fluindo</span>
+            <span class="legend-item"><i class="dot dot-standby"></i>Standby</span>
+            <span class="legend-item"><i class="dot dot-down"></i>Indisponível</span>
+          </div>
+        </div>
+
+        <div class="topology-viewport" id="topoViewport">
+          <div class="topology-canvas" id="topoCanvas">
+
+            <svg class="topo-svg" viewBox="0 0 1100 1000" width="1100" height="1000" preserveAspectRatio="xMidYMid meet">
+              <rect class="cluster-frame" x="150" y="588" width="800" height="184" rx="10"></rect>
+              <text class="cluster-label" x="550" y="572" text-anchor="middle">CLUSTER HA — ZABBIX SERVER</text>
+
+              <g class="links">
+                <path id="linkProxyWeb01" class="link" d="M550,160 V185 H300 V210"></path>
+                <path id="linkProxyWeb02" class="link" d="M550,160 V185 H800 V210"></path>
+                <path id="linkWeb01Db" class="link" d="M300,350 V375 H550 V400"></path>
+                <path id="linkWeb02Db" class="link" d="M800,350 V375 H550 V400"></path>
+                <path id="linkDbSrv01" class="link" d="M550,540 V575 H300 V610"></path>
+                <path id="linkDbSrv02" class="link" d="M550,540 V575 H800 V610"></path>
+                <path id="linkSrv01Host" class="link" d="M300,750 V780 H550 V810"></path>
+                <path id="linkSrv02Host" class="link" d="M800,750 V780 H550 V810"></path>
+              </g>
+
+              <g class="breaks">
+                <g id="breakProxyWeb01" class="break-x" style="--bx:425px; --by:185px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+                <g id="breakProxyWeb02" class="break-x" style="--bx:675px; --by:185px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+                <g id="breakWeb01Db" class="break-x" style="--bx:425px; --by:375px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+                <g id="breakWeb02Db" class="break-x" style="--bx:675px; --by:375px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+                <g id="breakDbSrv01" class="break-x" style="--bx:425px; --by:575px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+                <g id="breakDbSrv02" class="break-x" style="--bx:675px; --by:575px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+                <g id="breakSrv01Host" class="break-x" style="--bx:425px; --by:780px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+                <g id="breakSrv02Host" class="break-x" style="--bx:675px; --by:780px;"><path d="M-9,-9 L9,9 M9,-9 L-9,9"></path></g>
+              </g>
+            </svg>
+
+            <div id="dotProxyWeb01" class="pulse-dot" style="offset-path: path('M550,160 V185 H300 V210');"></div>
+            <div id="dotProxyWeb02" class="pulse-dot" style="offset-path: path('M550,160 V185 H800 V210');"></div>
+            <div id="dotWeb01Db" class="pulse-dot" style="offset-path: path('M300,350 V375 H550 V400');"></div>
+            <div id="dotWeb02Db" class="pulse-dot" style="offset-path: path('M800,350 V375 H550 V400');"></div>
+            <div id="dotDbSrv01" class="pulse-dot" style="offset-path: path('M550,540 V575 H300 V610');"></div>
+            <div id="dotDbSrv02" class="pulse-dot" style="offset-path: path('M550,540 V575 H800 V610');"></div>
+            <div id="dotSrv01Host" class="pulse-dot pulse-dot-strong" style="offset-path: path('M300,750 V780 H550 V810');"></div>
+            <div id="dotSrv02Host" class="pulse-dot pulse-dot-strong" style="offset-path: path('M800,750 V780 H550 V810');"></div>
+
+            <div id="nodeProxy" class="node node-proxy" style="left:435px; top:20px;">
+              <div class="icon"><svg viewBox="0 0 64 64"><path d="M12 32h40"></path><path d="M32 12v40"></path><rect x="18" y="18" width="28" height="28" rx="8"></rect></svg></div>
+              <div class="node-title">Reverse Proxy</div>
+              <div class="node-sub" id="proxyMessage">--</div>
+              <div class="node-meta">zabbix.ertechnol.com.br</div>
+            </div>
+
+            <div id="nodeWeb01" class="node node-web" style="left:185px; top:210px;">
+              <div class="icon"><svg viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="30" rx="4"></rect><path d="M24 50h16"></path><path d="M20 26h24"></path></svg></div>
+              <div class="node-title">Frontend 01</div>
+              <div class="node-sub" id="web01Message">--</div>
+              <div class="node-meta">zbx-web-01</div>
+            </div>
+
+            <div id="nodeWeb02" class="node node-web" style="left:685px; top:210px;">
+              <div class="icon"><svg viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="30" rx="4"></rect><path d="M24 50h16"></path><path d="M20 26h24"></path></svg></div>
+              <div class="node-title">Frontend 02</div>
+              <div class="node-sub" id="web02Message">--</div>
+              <div class="node-meta">zbx-web-02</div>
+            </div>
+
+            <div id="nodeDb" class="node node-db" style="left:435px; top:400px;">
+              <div class="icon"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="16" rx="18" ry="8"></ellipse><path d="M14 16v24c0 4 8 8 18 8s18-4 18-8V16"></path><path d="M14 28c0 4 8 8 18 8s18-4 18-8"></path></svg></div>
+              <div class="node-title">PostgreSQL</div>
+              <div class="node-sub" id="dbMessage">--</div>
+              <div class="node-meta">postgres / ha_node</div>
+            </div>
+
+            <div id="nodeSrv01" class="node node-server" style="left:185px; top:610px;">
+              <div class="role-flag" id="srv01Role">--</div>
+              <div class="icon"><svg viewBox="0 0 64 64"><rect x="14" y="10" width="36" height="14" rx="3"></rect><rect x="14" y="28" width="36" height="14" rx="3"></rect><circle cx="20" cy="17" r="2"></circle><circle cx="20" cy="35" r="2"></circle></svg></div>
+              <div class="node-title">Zabbix Server 01</div>
+              <div class="node-sub" id="srv01Message">--</div>
+              <div class="node-meta">zbx-node-01</div>
+            </div>
+
+            <div id="nodeSrv02" class="node node-server" style="left:685px; top:610px;">
+              <div class="role-flag" id="srv02Role">--</div>
+              <div class="icon"><svg viewBox="0 0 64 64"><rect x="14" y="10" width="36" height="14" rx="3"></rect><rect x="14" y="28" width="36" height="14" rx="3"></rect><circle cx="20" cy="17" r="2"></circle><circle cx="20" cy="35" r="2"></circle></svg></div>
+              <div class="node-title">Zabbix Server 02</div>
+              <div class="node-sub" id="srv02Message">--</div>
+              <div class="node-meta">zbx-node-02</div>
+            </div>
+
+            <div id="nodeHost" class="node node-host" style="left:435px; top:810px;">
+              <div class="icon"><svg viewBox="0 0 64 64"><rect x="12" y="14" width="40" height="26" rx="4"></rect><path d="M20 50h24"></path><path d="M32 40v10"></path></svg></div>
+              <div class="node-title">Host de teste</div>
+              <div class="node-sub" id="hostMessage">--</div>
+              <div class="node-meta">linux-host-ha-demo</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="topology-fallback" id="topoFallback">
+          <div class="fallback-hint">Diagrama compacto — gire o aparelho ou use uma tela maior para ver o mapa completo.</div>
+          <div id="fallbackList" class="fallback-list"></div>
+        </div>
+      </section>
+
+      <aside class="info-panel">
+        <div class="eyebrow">LAB · ZABBIX ALTA DISPONIBILIDADE</div>
+        <h1>Como funciona</h1>
+        <p class="description">
+          O proxy reverso mantém uma URL única de acesso. Os dois frontends entregam a interface web em
+          redundância. Um banco PostgreSQL compartilhado coordena o cluster HA dos dois Zabbix Server —
+          só o nó <strong>ACTIVE</strong> executa as coletas, enquanto o outro fica em <strong>STANDBY</strong>.
+          Se o ativo cair, o standby assume a coleta automaticamente; o host de teste no fim da cadeia prova
+          essa continuidade em tempo real.
+        </p>
+
+        <div class="status-bar">
+          <div class="status-row">
+            <span>Atualizado em</span>
+            <strong id="updatedAt">--</strong>
+          </div>
+          <div class="status-row">
+            <span>Nó ativo do cluster</span>
+            <strong id="activeNodeBadge" class="badge badge-active"><span class="live-dot"></span>--</strong>
+          </div>
+        </div>
+
+        <div id="connectivityAlert" class="connectivity-alert"></div>
+
+        <div id="lastEventLine" class="last-event">Nenhuma troca de nó ativo registrada ainda nesta sessão.</div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="failoverBanner" class="failover-banner"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
